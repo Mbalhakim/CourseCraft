@@ -230,7 +230,7 @@ label.check input { margin-top: 3px; accent-color: var(--accent); }
 
 /* ---------- Player ---------- */
 .player-layout { display: grid; grid-template-columns: 340px 1fr; height: calc(100vh - 56px); }
-.player-layout.theater { grid-template-columns: 0 1fr; }
+.player-layout.theater { grid-template-columns: 1fr; }
 .player-layout.theater .sidebar { display: none; }
 .sidebar { border-right: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; min-height: 0; }
 .sidebar-head { padding: 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
