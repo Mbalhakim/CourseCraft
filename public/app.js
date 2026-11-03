@@ -1030,12 +1030,27 @@ function renderLesson(rel) {
       d: () => setDone(entry.lesson.rel, !prog(entry.lesson.rel).done)
     }[k.length === 1 ? k.toLowerCase() : k] || (/^[0-9]$/.test(k) && video.duration ? () => { video.currentTime = video.duration * (+k / 10); } : null);
     if (handled) {
+      // Runs in the capture phase, so the focused <video> or button never sees the key:
+      // otherwise the native player also toggles on Space and the two cancel out.
       e.preventDefault();
+      e.stopPropagation();
+      swallowed.add(k);
+      if (e.repeat && !/^(Arrow|[jl<>]$)/.test(k)) return; // holding Space shouldn't flicker play/pause
       const r = handled();
       if (r && r.catch) r.catch(() => {});
     }
   }
-  document.addEventListener('keydown', onKey);
+  // Buttons are "clicked" by Space on keyup, so swallow the rest of a key we handled.
+  const swallowed = new Set();
+  function onKeyRest(e) {
+    if (!swallowed.has(e.key)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'keyup') swallowed.delete(e.key);
+  }
+  addEventListener('keydown', onKey, true);
+  addEventListener('keypress', onKeyRest, true);
+  addEventListener('keyup', onKeyRest, true);
 
   view = {
     kind: 'lesson', courseId, update,
@@ -1044,7 +1059,9 @@ function renderLesson(rel) {
       save(true);
       hideNext();
       clearTimeout(notesTimer);
-      document.removeEventListener('keydown', onKey);
+      removeEventListener('keydown', onKey, true);
+      removeEventListener('keypress', onKeyRest, true);
+      removeEventListener('keyup', onKeyRest, true);
       removeEventListener('beforeunload', beacon);
       video.pause();
       video.removeAttribute('src');
